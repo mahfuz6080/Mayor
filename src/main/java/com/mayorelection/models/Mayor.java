@@ -1,24 +1,20 @@
 package com.mayorelection.models;
 
-public class Mayor {
-
-    public enum Perk {
-        DOUBLE_MINING_XP,
-        CHEAPER_SHOPS,
-        EXTRA_MOB_DROPS,
-        FASTER_CROPS,
-        SERVER_BOOST
-    }
+public enum Mayor {
+    DIANA("Diana", "Extra pet drops"),
+    PAUL("Paul", "Dungeon reward increase"),
+    AATROX("Aatrox", "Slayer XP discount"),
+    MARINA("Marina", "Fishing festival"),
+    FOXXY("Foxxy", "Election bonus"),
+    JERRY("Jerry", "Special perks"),
+    COLE("Cole", "Mining fiesta"),
+    DERPY("Derpy", "Double XP"),
+    TECHNO("Technoblade", "Global bonuses");
 
     private final String name;
-    private Perk perk;
+    private final String perk;
 
-    public Mayor(String name) {
-        this.name = name;
-        this.perk = Perk.DOUBLE_MINING_XP; // default perk
-    }
-
-    public Mayor(String name, Perk perk) {
+    Mayor(String name, String perk) {
         this.name = name;
         this.perk = perk;
     }
@@ -27,28 +23,7 @@ public class Mayor {
         return name;
     }
 
-    public Perk getPerk() {
+    public String getPerk() {
         return perk;
-    }
-
-    public void setPerk(Perk perk) {
-        this.perk = perk;
-    }
-
-    public String getFormattedPerk() {
-        switch (perk) {
-            case DOUBLE_MINING_XP:
-                return "Double Mining XP";
-            case CHEAPER_SHOPS:
-                return "Cheaper Shops";
-            case EXTRA_MOB_DROPS:
-                return "Extra Mob Drops";
-            case FASTER_CROPS:
-                return "Faster Crops";
-            case SERVER_BOOST:
-                return "Server Boost";
-            default:
-                return "Unknown Perk";
-        }
     }
 }
