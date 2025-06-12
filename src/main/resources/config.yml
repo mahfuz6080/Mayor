@@ -1,0 +1,28 @@
+
+# Mayor Election Plugin Configuration
+
+election:
+  duration-minutes: 60     # How long each mayor term lasts
+  auto-restart: true       # Whether the election auto-restarts after ending
+
+mayors:
+  - name: "Diana"
+    ability: "More pet drops"
+
+  - name: "Aatrox"
+    ability: "Slayer XP discount"
+
+  - name: "Marina"
+    ability: "Fishing XP boost"
+
+  - name: "Cole"
+    ability: "More mining drops"
+
+  - name: "Foxy"
+    ability: "Extra events"
+
+  - name: "Derpy"
+    ability: "Double mobs + XP"
+
+  - name: "Paul"
+    ability: "Dungeon rewards buff"
