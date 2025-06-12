@@ -1,61 +1,141 @@
 package com.mayorelection;
 
-import com.mayorelection.commands.ElectionCommand;
-import com.mayorelection.commands.ElectionAdminCommand;
-import com.mayorelection.listeners.GuiClickListener;
-import com.mayorelection.models.Mayor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MayorElection extends JavaPlugin {
 
-    private final Map<UUID, String> votes = new HashMap<>();
-    private final List<Mayor> candidates = new ArrayList<>();
-    private Mayor currentMayor = null;
-    private long electionEndTime;
+    private List<Mayor> candidates = new ArrayList<>();
+    private Map<UUID, String> votes = new HashMap<>();
+    private Mayor currentMayor;
+    private Mayor runnerUp;
+    private long electionStartTime;
+    private int currentYear = 1;
+    private int electionDurationMinutes = 5; // default
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        getCommand("election").setExecutor(new ElectionCommand(this));
-        getCommand("electionadmin").setExecutor(new ElectionAdminCommand(this));
-        Bukkit.getPluginManager().registerEvents(new GuiClickListener(this), this);
-        loadMayors();
+        electionDurationMinutes = getConfig().getInt("election-duration", 5);
+
+        getCommand("vote").setExecutor(this);
+        getCommand("electioninfo").setExecutor(this);
+        getCommand("addcandidate").setExecutor(this);
+
         startElection();
     }
 
-    public void loadMayors() {
-        candidates.clear();
-        candidates.add(new Mayor("Diana", "Mythological creatures spawn."));
-        candidates.add(new Mayor("Aatrox", "Slayer XP bonus and cheaper."));
-        candidates.add(new Mayor("Cole", "Boosted mining XP."));
-        candidates.add(new Mayor("Derpy", "50% XP, disables auction."));
-        candidates.add(new Mayor("Paul", "Buffs to dungeons."));
-    }
-
-    public void startElection() {
+    private void startElection() {
         votes.clear();
-        electionEndTime = System.currentTimeMillis() + 3600_000L; // 1 hour
-        Bukkit.getScheduler().runTaskLater(this, this::endElection, 3600 * 20L);
+        electionStartTime = System.currentTimeMillis();
+        long durationTicks = electionDurationMinutes * 60L * 20L;
+
+        Bukkit.broadcastMessage(ChatColor.GOLD + "§lMayor Election has started! §r§6Year " + currentYear);
+
+        Bukkit.getScheduler().runTaskLater(this, this::endElection, durationTicks);
     }
 
-    public void endElection() {
-        Map<String, Integer> voteCount = new HashMap<>();
-        for (String mayor : votes.values()) {
-            voteCount.put(mayor, voteCount.getOrDefault(mayor, 0) + 1);
+    private void endElection() {
+        Map<String, Integer> results = tallyVotes();
+
+        if (results.isEmpty()) {
+            Bukkit.broadcastMessage(ChatColor.RED + "No votes were cast. No mayor elected.");
+            startElection();
+            return;
         }
-        String winner = Collections.max(voteCount.entrySet(), Map.Entry.comparingByValue()).getKey();
-        currentMayor = candidates.stream().filter(m -> m.getName().equals(winner)).findFirst().orElse(null);
-        Bukkit.broadcastMessage("§aMayor Election Over! Winner: §e" + currentMayor.getName());
-        Bukkit.broadcastMessage("§7Perk: " + currentMayor.getPerk());
-        startElection(); // auto-restart
+
+        List<Map.Entry<String, Integer>> sorted = results.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .collect(Collectors.toList());
+
+        currentMayor = findCandidate(sorted.get(0).getKey());
+        runnerUp = sorted.size() > 1 ? findCandidate(sorted.get(1).getKey()) : null;
+
+        Bukkit.broadcastMessage("§aElection Results:");
+        Bukkit.broadcastMessage("§eMayor: §6" + currentMayor.getName());
+        if (runnerUp != null) {
+            Bukkit.broadcastMessage("§eClerk: §6" + runnerUp.getName());
+        }
+
+        currentYear++;
+        startElection();
     }
 
-    public List<Mayor> getCandidates() { return candidates; }
+    private Map<String, Integer> tallyVotes() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (String vote : votes.values()) {
+            counts.put(vote, counts.getOrDefault(vote, 0) + 1);
+        }
+        return counts;
+    }
 
-    public Map<UUID, String> getVotes() { return votes; }
+    private Mayor findCandidate(String name) {
+        return candidates.stream()
+                .filter(c -> c.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
 
-    public Mayor getCurrentMayor() { return currentMayor; }
+    private String formatTimeRemaining() {
+        long endMillis = electionStartTime + electionDurationMinutes * 60L * 1000L;
+        long remaining = endMillis - System.currentTimeMillis();
+        if (remaining <= 0) return "00:00";
+        long seconds = remaining / 1000;
+        long minutes = seconds / 60;
+        seconds %= 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        switch (cmd.getName().toLowerCase()) {
+            case "vote":
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Only players can vote.");
+                    return true;
+                }
+                if (args.length != 1) {
+                    sender.sendMessage("§cUsage: /vote <candidate>");
+                    return true;
+                }
+                String choice = args[0];
+                if (findCandidate(choice) == null) {
+                    sender.sendMessage("§cNo such candidate.");
+                    return true;
+                }
+                votes.put(((Player) sender).getUniqueId(), choice);
+                sender.sendMessage("§aVote recorded for §e" + choice);
+                return true;
+
+            case "addcandidate":
+                if (args.length != 1) {
+                    sender.sendMessage("§cUsage: /addcandidate <name>");
+                    return true;
+                }
+                String name = args[0];
+                Mayor candidate = new Mayor(name);
+                candidates.add(candidate);
+                sender.sendMessage("§aCandidate §e" + name + " §aadded.");
+                return true;
+
+            case "electioninfo":
+                if (currentMayor != null)
+                    sender.sendMessage("§6Current Mayor: §e" + currentMayor.getName());
+                if (runnerUp != null)
+                    sender.sendMessage("§6Clerk: §e" + runnerUp.getName());
+                sender.sendMessage("§6Year: §e" + currentYear);
+                sender.sendMessage("§6Time Remaining: §e" + formatTimeRemaining());
+                return true;
+        }
+        return false;
+    }
 }
