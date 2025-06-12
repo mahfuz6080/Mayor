@@ -1,6 +1,5 @@
 package com.mayorelection;
 
-import com.mayorelection.models.Mayor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -33,7 +32,8 @@ public class MayorElection extends JavaPlugin {
         startElection();
     }
 
-    private void startElection() {
+    // Public method to allow external access
+    public void startElection() {
         votes.clear();
         electionStartTime = System.currentTimeMillis();
         long durationTicks = electionDurationMinutes * 60L * 20L;
@@ -93,6 +93,27 @@ public class MayorElection extends JavaPlugin {
         long minutes = seconds / 60;
         seconds %= 60;
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    // Public getters for access from other classes
+    public List<Mayor> getCandidates() {
+        return candidates;
+    }
+
+    public Map<UUID, String> getVotes() {
+        return votes;
+    }
+
+    public Mayor getCurrentMayor() {
+        return currentMayor;
+    }
+
+    public Mayor getRunnerUp() {
+        return runnerUp;
+    }
+
+    public int getCurrentYear() {
+        return currentYear;
     }
 
     @Override
