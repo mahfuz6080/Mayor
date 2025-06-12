@@ -1,15 +1,13 @@
 name: MayorElection
+main: com.mayorelection
 version: 1.0
-main: com.mayorelection.MayorElection
-api-version: 1.19
 commands:
-  election:
-    description: Open the mayor election GUI
-    usage: /election
-  electionadmin:
-    description: Admin controls for the election
-    usage: /electionadmin
-permissions:
-  mayorelection.admin:
-    description: Admin permission for mayor election
-    default: op
+  vote:
+    description: Vote for a candidate
+    usage: /vote <candidate>
+  electioninfo:
+    description: Show current mayor, clerk, year, and remaining time
+    usage: /electioninfo
+  addcandidate:
+    description: Add a candidate to the election
+    usage: /addcandidate <name>
