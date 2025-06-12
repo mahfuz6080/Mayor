@@ -1,15 +1,13 @@
-package com.mayorelection.models;
-
-public class Mayor {
-    private final String name;
-    private final String perk;
-
-    public Mayor(String name, String perk) {
-        this.name = name;
-        this.perk = perk;
-    }
-
-    public String getName() { return name; }
-
-    public String getPerk() { return perk; }
-}
+name: MayorElection
+main: com.mayorelection
+version: 1.0
+commands:
+  vote:
+    description: Vote for a candidate
+    usage: /vote <candidate>
+  electioninfo:
+    description: Show current mayor, clerk, year, and remaining time
+    usage: /electioninfo
+  addcandidate:
+    description: Add a candidate to the election
+    usage: /addcandidate <name>
