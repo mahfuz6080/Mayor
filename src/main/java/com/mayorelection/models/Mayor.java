@@ -1,13 +1,14 @@
-package com.mayorelection.models;
+private String perk;
 
-public class Mayor {
-    private final String name;
+public Mayor(String name) {
+    this.name = name;
+    this.perk = "Default Perk"; // or whatever logic
+}
 
-    public Mayor(String name) {
-        this.name = name;
-    }
+public String getPerk() {
+    return perk;
+}
 
-    public String getName() {
-        return name;
-    }
+public void setPerk(String perk) {
+    this.perk = perk;
 }
