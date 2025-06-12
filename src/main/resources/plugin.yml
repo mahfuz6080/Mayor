@@ -1,0 +1,15 @@
+name: MayorElection
+version: 1.0
+main: com.mayorelection.MayorElection
+api-version: 1.19
+commands:
+  election:
+    description: Open the mayor election GUI
+    usage: /election
+  electionadmin:
+    description: Admin controls for the election
+    usage: /electionadmin
+permissions:
+  mayorelection.admin:
+    description: Admin permission for mayor election
+    default: op
